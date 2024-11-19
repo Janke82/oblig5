@@ -1,23 +1,22 @@
-from flask import Flask, render_template, send_file
+from flask import Flask, send_file
 import pandas as pd
 import matplotlib.pyplot as plt
 import io
-import os
 
 app = Flask(__name__)
 
 @app.route('/')
 def index():
-    # Last inn dataen
+    # Last inn dataen fra lokal Excel-fil
     bhgdata = pd.read_excel(
-        "ssb-barnehager-2015-2023-alder-1-2-aar.xlsm", 
+        "ssb-barnehager-2015-2023-alder-1-2-aar.xlsm",  # Excel-fil må være i samme mappe som app.py
         sheet_name="KOSandel120000",
         header=3,
         names=["kom", "y15", "y16", "y17", "y18", "y19", "y20", "y21", "y22", "y23"],
         na_values=[".", ".."]
     )
 
-    # Hvilken kommune
+    # Hvilken kommune vi vil vise data for
     valgt_kommune = "4203 Arendal"
     data_for_kommune = bhgdata[bhgdata["kom"] == valgt_kommune]
 
@@ -37,14 +36,15 @@ def index():
     plt.grid(axis="y")
     plt.tight_layout()
 
-    # Lagre grafen til en byte-strøm (i minnet)
+    # Lagre grafen som en byte-strøm i minnet
     img = io.BytesIO()
     plt.savefig(img, format="png")
     img.seek(0)  # Tilbakestill posisjonen i strømmen
     plt.close()  # Lukker figuren for å unngå minnelekkasjer
 
-    # Send grafen til klienten
+    # Send bildet til nettleseren
     return send_file(img, mimetype='image/png')
 
 if __name__ == '__main__':
+    # Starter Flask-applikasjonen på localhost, port 5000
     app.run(debug=True)
