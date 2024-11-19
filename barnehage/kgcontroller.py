@@ -118,11 +118,22 @@ def check_availability():
     kg = pd.read_excel("kgdata.xlsx", sheet_name="barnehage",
                        names=["index", "barnehage_id", "barnehage_navn", "barnehage_antall_plasser", "barnehage_ledige_plasser"])
     kg_soknad = pd.read_excel("kgdata.xlsx", sheet_name="soknad",
-                       names=["index", "id", "foresatt_1", "foresatt_2", "barn", "barnevern", "syk_fam", "syk_barn", "fr_annet", "barnehager", "sosken", "tidspunkt", "inntekt", "tilbud"])
-    prioritet = kg_soknad.loc[0, "barnehager"]
+                       names=['sok_id',
+                       'foresatt_1',
+                       'foresatt_2',
+                       'barn_1',
+                       'fr_barnevern',
+                       'fr_sykd_familie',
+                       'fr_sykd_barn',
+                       'fr_annet',
+                       'barnehager_prioritert',
+                       'sosken__i_barnehagen',
+                       'tidspunkt_oppstart',
+                       'brutto_inntekt',
+                       'tilbud'])
+    prioritet = kg_soknad.loc[0, "barnehager_prioritert"]
     for x in range(len(kg)):
         kg_check = kg.loc[x, "barnehage_navn"]
-        print(kg_check)
         if kg_check  == prioritet:
             kg_id = kg.loc[x, "barnehage_id"]
             break
