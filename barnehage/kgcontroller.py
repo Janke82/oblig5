@@ -81,7 +81,8 @@ def insert_soknad(s):
                                      s.barnehager_prioritert,
                                      s.sosken__i_barnehagen,
                                      s.tidspunkt_oppstart,
-                                     s.brutto_inntekt]],
+                                     s.brutto_inntekt,
+                                     s.tilbud]],
                 columns=soknad.columns), soknad], ignore_index=True)
     
     return soknad
@@ -115,23 +116,26 @@ def select_barn(b_pnr):
     
 def check_availability():
     kg = pd.read_excel("kgdata.xlsx", sheet_name="barnehage",
-                       names=["index", "id", "navn", "tot_plasser", "ledige_plasser"])
+                       names=["index", "barnehage_id", "barnehage_navn", "barnehage_antall_plasser", "barnehage_ledige_plasser"])
     kg_soknad = pd.read_excel("kgdata.xlsx", sheet_name="soknad",
-                       names=["index", "id", "foresatt_1", "foresatt_2", "barn", "barnevern", "syk_fam", "syk_barn", "fr_annet", "barnehager", "sosken", "tidspunkt", "inntekt"])
+                       names=["index", "id", "foresatt_1", "foresatt_2", "barn", "barnevern", "syk_fam", "syk_barn", "fr_annet", "barnehager", "sosken", "tidspunkt", "inntekt", "tilbud"])
     prioritet = kg_soknad.loc[0, "barnehager"]
     for x in range(len(kg)):
-        kg_check = kg.loc[x, "navn"]
+        kg_check = kg.loc[x, "barnehage_navn"]
+        print(kg_check)
         if kg_check  == prioritet:
-            kg_id = kg.loc[x, "id"]
+            kg_id = kg.loc[x, "barnehage_id"]
             break
     for x in range(len(kg)):
-        if kg.loc[x, "id"] == kg_id:
-            plasser = kg.loc[x, "ledige_plasser"]   
+        if kg.loc[x, "barnehage_id"] == kg_id:
+            plasser = kg.loc[x, "barnehage_ledige_plasser"]
+            break
     if plasser  > 0:
+        fill_kg_places(kg, x, plasser, kg_soknad)
         return "Tilbud"
     else:
         return "Avslag"
-    
+        
 def select_alle_soknader():
     """Returnerer en liste med alle barnehager definert i databasen dbexcel."""
     return soknad.apply(lambda r: Soknad(r['sok_id'],
@@ -145,7 +149,8 @@ def select_alle_soknader():
                              r['barnehager_prioritert'],
                              r['sosken__i_barnehagen'],
                              r['tidspunkt_oppstart'],
-                             r['brutto_inntekt']),
+                             r['brutto_inntekt'],
+                             r['tilbud']),
             axis=1).to_list()
 
 def select_alle_foresatte():
@@ -166,9 +171,17 @@ def select_alle_barn():
 
 # ------------------
 # Update
-def update_kg():
+def update_soknad():
      with pd.ExcelWriter('kgdata.xlsx', mode='a', if_sheet_exists='replace') as writer:
          soknad.to_excel(writer, sheet_name='soknad')
+
+def fill_kg_places(kg, index_nr, plasser, kg_soknad):
+    kg.at[index_nr, "barnehage_ledige_plasser"] = plasser - 1
+    kg_soknad.at[0, "tilbud"] = "Ja"
+    with pd.ExcelWriter('kgdata.xlsx', mode='a', if_sheet_exists='replace') as writer:
+        kg.to_excel(writer, sheet_name='barnehage')
+    with pd.ExcelWriter('kgdata.xlsx', mode='a', if_sheet_exists='replace') as writer:
+        kg_soknad.to_excel(writer, sheet_name='soknad')
 # ------------------
 # Delete
 
@@ -240,7 +253,8 @@ ImmutableMultiDict([('navn_forelder_1', 'asdf'),
                    sd.get('liste_over_barnehager_prioritert_5'),
                    sd.get('har_sosken_som_gaar_i_barnehagen'),
                    sd.get('tidspunkt_for_oppstart'),
-                   sd.get('brutto_inntekt_husholdning'))
+                   sd.get('brutto_inntekt_husholdning'),
+                   sd.get('tilbud'))
     
     return sok_1
 
