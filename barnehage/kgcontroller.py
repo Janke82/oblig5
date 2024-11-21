@@ -142,7 +142,7 @@ def check_availability():
             plasser = kg.loc[x, "barnehage_ledige_plasser"]
             break
     if plasser  > 0:
-        fill_kg_places(kg, x, plasser, kg_soknad)
+        fill_kg_places(x, plasser)
         return "Tilbud"
     else:
         return "Avslag"
@@ -186,13 +186,13 @@ def update_soknad():
      with pd.ExcelWriter('kgdata.xlsx', mode='a', if_sheet_exists='replace') as writer:
          soknad.to_excel(writer, sheet_name='soknad')
 
-def fill_kg_places(kg, index_nr, plasser, kg_soknad):
-    kg.at[index_nr, "barnehage_ledige_plasser"] = plasser - 1
-    kg_soknad.at[0, "tilbud"] = "Ja"
+def fill_kg_places(index_nr, plasser):
+    barnehage.at[index_nr, "barnehage_ledige_plasser"] = plasser - 1
+    soknad.at[0, "tilbud"] = "Ja"
     with pd.ExcelWriter('kgdata.xlsx', mode='a', if_sheet_exists='replace') as writer:
-        kg.to_excel(writer, sheet_name='barnehage')
+        barnehage.to_excel(writer, sheet_name='barnehage')
     with pd.ExcelWriter('kgdata.xlsx', mode='a', if_sheet_exists='replace') as writer:
-        kg_soknad.to_excel(writer, sheet_name='soknad')
+        soknad.to_excel(writer, sheet_name='soknad')
 # ------------------
 # Delete
 
