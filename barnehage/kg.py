@@ -52,6 +52,10 @@ def soknader():
     information = select_alle_soknader()
     return render_template('soknader.html', data=information)
 
+@app.route('/statestikk')
+def statestikk():
+    return render_template('statestikk.html')
+
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5000)  
 
