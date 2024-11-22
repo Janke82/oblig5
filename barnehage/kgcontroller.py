@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 from dbexcel import *
 from kgmodel import *
+import matplotlib.pyplot as plt
 
 
 # CRUD metoder
@@ -179,13 +180,11 @@ def select_alle_barn():
                              
 # --- Skriv kode for select_soknad her
 def statestikk():
-    import pandas as pd
     kgdata = pd.read_excel("ssb-barnehager-2015-2023-alder-1-2-aar.xlsm", sheet_name="KOSandel120000",
                        header=3,
                        names=["kom","y15","y16","y17","y18","y19","y20","y21","y22","y23"],
                        na_values=[".", ".."])
 
-    import matplotlib.pyplot as plt
 
 
 #hvilken kommune
@@ -199,7 +198,7 @@ def statestikk():
     år = ["2015", "2016", "2017", "2018", "2019", "2020", "2021", "2022", "2023"]
 
 # Lag søylediagram
-    plt.figure(figsize=(10, 5))
+    fig = plt.figure(figsize=(10, 5))
     plt.bar(år, prosent_barn, color="pink")
     plt.title("Prosent av barn i ett- og to-årsalderen i barnehagen for Arendal (2020-2023)")
     plt.xlabel("År")
@@ -207,7 +206,8 @@ def statestikk():
     plt.xticks(rotation=45)
     plt.grid(axis="y")
     plt.tight_layout()
-    plt.show()
+    fig.savefig('barnehage/static/images/my_plot.png')
+    
 
 # ------------------
 # Update

@@ -5,7 +5,7 @@ from flask import request
 from flask import redirect
 from flask import session
 from kgmodel import (Foresatt, Barn, Soknad, Barnehage)
-from kgcontroller import (form_to_object_soknad, insert_soknad, commit_all, select_alle_barnehager, check_availability, select_alle_soknader, select_alle_foresatte, select_alle_barn, update_soknad)
+from kgcontroller import (form_to_object_soknad, insert_soknad, commit_all, select_alle_barnehager, check_availability, select_alle_soknader, select_alle_foresatte, select_alle_barn, update_soknad, statestikk)
 
 app = Flask(__name__)
 app.secret_key = 'BAD_SECRET_KEY' # nødvendig for session
@@ -52,10 +52,10 @@ def soknader():
     information = select_alle_soknader()
     return render_template('soknader.html', data=information)
 
-@app.route('/statestikk')
-def statestikk():
-    information = statestikk()
-    return render_template('statestikk.html')
+@app.route('/statistikk')
+def statistikk():
+    statestikk()
+    return render_template('statistikk.html')
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5000)  
