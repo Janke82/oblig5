@@ -178,27 +178,30 @@ def select_alle_barn():
             axis=1).to_list()
                              
 # --- Skriv kode for select_soknad her
+import matplotlib.pyplot as plt
+import io
+import base64
+from flask import Response
+
+from flask import Flask, render_template
+
+app = Flask(__name__)
+@app.route('/statestikk')
 def statestikk():
+    # Laste data
     import pandas as pd
     kgdata = pd.read_excel("ssb-barnehager-2015-2023-alder-1-2-aar.xlsm", sheet_name="KOSandel120000",
-                       header=3,
-                       names=["kom","y15","y16","y17","y18","y19","y20","y21","y22","y23"],
-                       na_values=[".", ".."])
+                           header=3,
+                           names=["kom", "y15", "y16", "y17", "y18", "y19", "y20", "y21", "y22", "y23"],
+                           na_values=[".", ".."])
 
-    import matplotlib.pyplot as plt
-
-
-#hvilken kommune
     valgt_kommune = "4203 Arendal" 
     data_for_kommune = kgdata[kgdata["kom"] == valgt_kommune]
 
-# Beregn prosentandel av barn 1 -2 år
     prosent_barn = data_for_kommune[["y15", "y16", "y17", "y18", "y19", "y20", "y21", "y22", "y23"]].values.flatten()
-
-# År
     år = ["2015", "2016", "2017", "2018", "2019", "2020", "2021", "2022", "2023"]
 
-# Lag søylediagram
+    # Lag diagrammet
     plt.figure(figsize=(10, 5))
     plt.bar(år, prosent_barn, color="pink")
     plt.title("Prosent av barn i ett- og to-årsalderen i barnehagen for Arendal (2020-2023)")
@@ -206,8 +209,17 @@ def statestikk():
     plt.ylabel("Prosent")
     plt.xticks(rotation=45)
     plt.grid(axis="y")
-    plt.tight_layout()
-    plt.show()
+
+    # Lagre diagrammet som et bilde i minnet (til en fil)
+    img = io.BytesIO()
+    plt.savefig(img, format='png')
+    img.seek(0)
+
+    # Konverter bildet til base64-kodet streng for å vise det i HTML
+    img_base64 = base64.b64encode(img.getvalue()).decode('utf8')
+
+    # Returner HTML som inkluderer diagrammet
+    return render_template('statestikk.html', img_data=img_base64)
 
 # ------------------
 # Update
