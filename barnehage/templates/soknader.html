@@ -1,0 +1,37 @@
+{% extends 'base.html' %} {% block content %}
+
+<table border="1">
+  <tr>
+    <th>Id</th>
+    <th>foresatt_1</th>
+    <th>foresatt_2</th>
+    <th>barn_1</th>
+    <th>fr_barnevern</th>
+    <th>fr_syk_familie</th>
+    <th>fr_syk_barn</th>
+    <th>fr_annet</th>
+    <th>barnehage_prioritert</th>
+    <th>sosken__i_barnehagen</th>
+    <th>tidspunkt_oppstart</th>
+    <th>brutto_inntekt</th>
+    <th>tilbud</th>
+  </tr>
+  {% for elt in data %}
+  <tr>
+    <td>{{ elt.sok_id }}</td>
+    <td>{{ elt.foresatt_1 }}</td>
+    <td>{{ elt.foresatt_2 }}</td>
+    <td>{{ elt.barn_1 }}</td>
+    <td>{{ elt.fr_barnevern }}</td>
+    <td>{{ elt.fr_sykd_familie }}</td>
+    <td>{{ elt.fr_sykd_barn }}</td>
+    <td>{{ elt.fr_annet }}</td>
+    <td>{{ elt.barnehager_prioritert }}</td>
+    <td>{{ elt.sosken__i_barnehagen }}</td>
+    <td>{{ elt.tidspunkt_oppstart }}</td>
+    <td>{{ elt.brutto_inntekt }}</td>
+    <td>{{ elt.tilbud }}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% endblock %}

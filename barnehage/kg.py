@@ -5,7 +5,7 @@ from flask import request
 from flask import redirect
 from flask import session
 from kgmodel import (Foresatt, Barn, Soknad, Barnehage)
-from kgcontroller import (form_to_object_soknad, insert_soknad, commit_all, select_alle_barnehager)
+from kgcontroller import (form_to_object_soknad, insert_soknad, commit_all, select_alle_barnehager, check_availability, select_alle_soknader, select_alle_foresatte, select_alle_barn, update_soknad, statestikk)
 
 app = Flask(__name__)
 app.secret_key = 'BAD_SECRET_KEY' # nødvendig for session
@@ -33,15 +33,32 @@ def behandle():
 
 @app.route('/svar')
 def svar():
+    update_soknad()
+    request_answer = check_availability()
     information = session['information']
-    return render_template('svar.html', data=information)
+    return render_template('svar.html', data=information, answer=request_answer) 
 
 @app.route('/commit')
 def commit():
+    barnehager = select_alle_barnehager()
+    soknader = select_alle_soknader()
+    barn = select_alle_barn()
+    foresatte = select_alle_foresatte()
     commit_all()
-    return render_template('commit.html')
+    return render_template('commit.html', kg=barnehager, applicants=soknader, foresatte=foresatte, barn=barn)
 
+@app.route('/soknader')
+def soknader():
+    information = select_alle_soknader()
+    return render_template('soknader.html', data=information)
 
+@app.route('/statistikk')
+def statistikk():
+    statestikk()
+    return render_template('statistikk.html')
+
+if __name__ == "__main__":
+    app.run(host='0.0.0.0', port=5000)  
 
 
 """

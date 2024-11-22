@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 from dbexcel import *
 from kgmodel import *
+import matplotlib.pyplot as plt
 
 
 # CRUD metoder
@@ -81,7 +82,8 @@ def insert_soknad(s):
                                      s.barnehager_prioritert,
                                      s.sosken__i_barnehagen,
                                      s.tidspunkt_oppstart,
-                                     s.brutto_inntekt]],
+                                     s.brutto_inntekt,
+                                     s.tilbud]],
                 columns=soknad.columns), soknad], ignore_index=True)
     
     return soknad
@@ -113,14 +115,113 @@ def select_barn(b_pnr):
     else:
         return series.iloc[0] # returnerer kun det første elementet i series
     
-    
-# --- Skriv kode for select_soknad her
+def check_availability():
+    kg = pd.read_excel("kgdata.xlsx", sheet_name="barnehage",
+                       names=["index", "barnehage_id", "barnehage_navn", "barnehage_antall_plasser", "barnehage_ledige_plasser"])
+    kg_soknad = pd.read_excel("kgdata.xlsx", sheet_name="soknad",
+                       names=['sok_id',
+                       'foresatt_1',
+                       'foresatt_2',
+                       'barn_1',
+                       'fr_barnevern',
+                       'fr_sykd_familie',
+                       'fr_sykd_barn',
+                       'fr_annet',
+                       'barnehager_prioritert',
+                       'sosken__i_barnehagen',
+                       'tidspunkt_oppstart',
+                       'brutto_inntekt',
+                       'tilbud'])
+    prioritet = kg_soknad.loc[0, "barnehager_prioritert"]
+    for x in range(len(kg)):
+        kg_check = kg.loc[x, "barnehage_navn"]
+        if kg_check  == prioritet:
+            kg_id = kg.loc[x, "barnehage_id"]
+            break
+    for x in range(len(kg)):
+        if kg.loc[x, "barnehage_id"] == kg_id:
+            plasser = kg.loc[x, "barnehage_ledige_plasser"]
+            break
+    if plasser  > 0:
+        fill_kg_places(x, plasser)
+        return "Tilbud"
+    else:
+        return "Avslag"
+        
+def select_alle_soknader():
+    """Returnerer en liste med alle barnehager definert i databasen dbexcel."""
+    return soknad.apply(lambda r: Soknad(r['sok_id'],
+                             r['foresatt_1'],
+                             r['foresatt_2'],
+                             r['barn_1'],
+                             r['fr_barnevern'],
+                             r['fr_sykd_familie'],
+                             r['fr_sykd_barn'],
+                             r['fr_annet'],
+                             r['barnehager_prioritert'],
+                             r['sosken__i_barnehagen'],
+                             r['tidspunkt_oppstart'],
+                             r['brutto_inntekt'],
+                             r['tilbud']),
+            axis=1).to_list()
 
+def select_alle_foresatte():
+    return forelder.apply(lambda r: Foresatt(r['foresatt_id'],
+                             r['foresatt_navn'],
+                             r['foresatt_adresse'],
+                             r['foresatt_tlfnr'],
+                             r['foresatt_pnr']),
+            axis=1).to_list()
+
+def select_alle_barn():
+    return barn.apply(lambda r: Barn(r['barn_id'],
+                             r['barn_pnr']),
+            axis=1).to_list()
+                             
+# --- Skriv kode for select_soknad her
+def statestikk():
+    kgdata = pd.read_excel("ssb-barnehager-2015-2023-alder-1-2-aar.xlsm", sheet_name="KOSandel120000",
+                       header=3,
+                       names=["kom","y15","y16","y17","y18","y19","y20","y21","y22","y23"],
+                       na_values=[".", ".."])
+
+
+
+#hvilken kommune
+    valgt_kommune = "4203 Arendal" 
+    data_for_kommune = kgdata[kgdata["kom"] == valgt_kommune]
+
+# Beregn prosentandel av barn 1 -2 år
+    prosent_barn = data_for_kommune[["y15", "y16", "y17", "y18", "y19", "y20", "y21", "y22", "y23"]].values.flatten()
+
+# År
+    år = ["2015", "2016", "2017", "2018", "2019", "2020", "2021", "2022", "2023"]
+
+# Lag søylediagram
+    fig = plt.figure(figsize=(10, 5))
+    plt.bar(år, prosent_barn, color="pink")
+    plt.title("Prosent av barn i ett- og to-årsalderen i barnehagen for Arendal (2020-2023)")
+    plt.xlabel("År")
+    plt.ylabel("Prosent")
+    plt.xticks(rotation=45)
+    plt.grid(axis="y")
+    plt.tight_layout()
+    fig.savefig('barnehage/static/images/my_plot.png')
+    
 
 # ------------------
 # Update
+def update_soknad():
+     with pd.ExcelWriter('kgdata.xlsx', mode='a', if_sheet_exists='replace') as writer:
+         soknad.to_excel(writer, sheet_name='soknad')
 
-
+def fill_kg_places(index_nr, plasser):
+    barnehage.at[index_nr, "barnehage_ledige_plasser"] = plasser - 1
+    soknad.at[0, "tilbud"] = "Ja"
+    with pd.ExcelWriter('kgdata.xlsx', mode='a', if_sheet_exists='replace') as writer:
+        barnehage.to_excel(writer, sheet_name='barnehage')
+    with pd.ExcelWriter('kgdata.xlsx', mode='a', if_sheet_exists='replace') as writer:
+        soknad.to_excel(writer, sheet_name='soknad')
 # ------------------
 # Delete
 
@@ -192,7 +293,8 @@ ImmutableMultiDict([('navn_forelder_1', 'asdf'),
                    sd.get('liste_over_barnehager_prioritert_5'),
                    sd.get('har_sosken_som_gaar_i_barnehagen'),
                    sd.get('tidspunkt_for_oppstart'),
-                   sd.get('brutto_inntekt_husholdning'))
+                   sd.get('brutto_inntekt_husholdning'),
+                   sd.get('tilbud'))
     
     return sok_1
 
